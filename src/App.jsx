@@ -18,7 +18,7 @@ const handleImageChange = (e) => {
     const formData = new FormData(form);
 
     try {
-      const res = await fetch('http://chance.chasingachance.com/api/upload', {
+      const res = await fetch('https://chance.chasingachance.com/api/upload', {
         method: 'POST',
         body: formData
       });
