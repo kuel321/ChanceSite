@@ -144,3 +144,16 @@ background-color: white;
 .chance-donate-link:visited {
   color:white;
 }
+
+
+/* Unnaproved page */
+
+.admin-main h2 { 
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.admin-main p {
+  font-size: 16px;
+}

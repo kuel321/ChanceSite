@@ -1,26 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
   const [submitted, setSubmitted] = useState(false);
-const [imageSelected, setImageSelected] = useState(false);
-const [skipImage, setSkipImage] = useState(false);
+  const [imageSelected, setImageSelected] = useState(false);
+  const [skipImage, setSkipImage] = useState(false);
+  const [approvedStories, setApprovedStories] = useState([]);
 
-const handleCheckboxChange = (e) => {
-  setSkipImage(e.target.checked);
-};
-const handleImageChange = (e) => {
-  setImageSelected(e.target.files.length > 0);
-};
+  // ✅ Dynamically use localhost or production domain
+  const basePath = window.location.hostname.includes('localhost')
+    ? 'http://localhost:3001'
+    : 'https://chance.chasingachance.com';
+
+  useEffect(() => {
+    fetch(`${basePath}/api/approved`)
+      .then((res) => res.json())
+      .then(setApprovedStories)
+      .catch((err) => console.error('Failed to load approved stories', err));
+  }, [basePath]);
+
+  const handleCheckboxChange = (e) => setSkipImage(e.target.checked);
+  const handleImageChange = (e) => setImageSelected(e.target.files.length > 0);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
+    const formData = new FormData(e.target);
 
     try {
-      const res = await fetch('https://chance.chasingachance.com/api/upload', {
+      const res = await fetch(`${basePath}/api/upload`, {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
       if (!res.ok) throw new Error('Upload failed');
@@ -92,35 +101,35 @@ const handleImageChange = (e) => {
               required
             ></textarea>
 
-          <label htmlFor='image' className='form-label'>
-  Upload a picture of your dog!
-</label>
-<input
-  type='file'
-  id='image'
-  name='image'
-  className='form-input'
-  accept='image/*'
-  onChange={handleImageChange}
-/>
+            <label htmlFor='image' className='form-label'>
+              Upload a picture of your dog!
+            </label>
+            <input
+              type='file'
+              id='image'
+              name='image'
+              className='form-input'
+              accept='image/*'
+              onChange={handleImageChange}
+            />
 
-<div style={{ marginBottom: '1rem' }}>
-  <label className='chance-checkbox'>
-    <input type='checkbox' onChange={handleCheckboxChange} /> Submit without an image
-  </label>
-</div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label className='chance-checkbox'>
+                <input type='checkbox' onChange={handleCheckboxChange} /> Submit without an image
+              </label>
+            </div>
 
-<button
-  type='submit'
-  className='chance-donate-link'
-  disabled={!imageSelected && !skipImage}
-  style={{
-    opacity: imageSelected || skipImage ? 1 : 0.6,
-    cursor: imageSelected || skipImage ? 'pointer' : 'not-allowed'
-  }}
->
-  Submit Story
-</button>
+            <button
+              type='submit'
+              className='chance-donate-link'
+              disabled={!imageSelected && !skipImage}
+              style={{
+                opacity: imageSelected || skipImage ? 1 : 0.6,
+                cursor: imageSelected || skipImage ? 'pointer' : 'not-allowed'
+              }}
+            >
+              Submit Story
+            </button>
           </form>
         ) : (
           <div
@@ -137,6 +146,52 @@ const handleImageChange = (e) => {
             Thank you for your submission!
           </div>
         )}
+      </div>
+
+      {/* ✅ Gallery of approved images */}
+      <div className='gallery-container' style={{ padding: '2rem' }}>
+        <h2 className='chance-name'>Sharkie Submissions</h2>
+        <div
+          className='gallery-grid'
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: '1.5rem',
+            marginTop: '1rem'
+          }}
+        >
+          {approvedStories.length === 0 && (
+            <p className='chance-paragraph' style={{ textAlign: 'center' }}>No submissions yet.</p>
+          )}
+          {approvedStories.map((entry, idx) => (
+            <div
+              key={idx}
+              style={{
+                width: '280px',
+                backgroundColor: '#f2f2f2',
+                borderRadius: '8px',
+                padding: '1rem',
+                textAlign: 'center',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+              }}
+            >
+              {entry.imageUrl && (
+                <img
+                  src={`${basePath}${entry.imageUrl}`}
+                  alt='Dog'
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    borderRadius: '6px',
+                    marginBottom: '0.75rem'
+                  }}
+                />
+              )}
+              <p style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>{entry.story}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
